@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Tarefas</h1>
+        <div class="legend">
+            <span class="legend-item"><span class="legend-color late"></span> Atrasada</span>
+            <span class="legend-item"><span class="legend-color soon"></span> Prazo em até 2 dias</span>
+            <span class="legend-item"><span class="legend-color normal"></span> Prazo normal</span>
+        </div>
+        <form id="todo-form">
+            <input type="text" id="todo-input" placeholder="Título da tarefa" required>
+            <textarea id="todo-desc-input" placeholder="Descrição da tarefa" rows="2" required></textarea>
+            <div class="form-row-center">
+                <input type="date" id="due-date-input" required>
+                <select id="urgency-input">
+                    <option value="low">Baixa Urgência</option>
+                    <option value="medium">Média Urgência</option>
+                    <option value="high">Alta Urgência</option>
+                </select>
+                <button type="submit">Adicionar</button>
+            </div>
+        </form>
+
+        <!-- Modal for description -->
+        <div id="desc-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="close-modal" class="close">&times;</span>
+                <h3 id="modal-title"></h3>
+                <p id="modal-desc"></p>
+            </div>
+        </div>
+        <div class="columns-container">
+            <div class="column" id="high-urgency-col">
+                <h2>Alta Urgência</h2>
+                <ul id="high-urgency-list"></ul>
+            </div>
+            <div class="column" id="medium-urgency-col">
+                <h2>Média Urgência</h2>
+                <ul id="medium-urgency-list"></ul>
+            </div>
+            <div class="column" id="low-urgency-col">
+                <h2>Baixa Urgência</h2>
+                <ul id="low-urgency-list"></ul>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
