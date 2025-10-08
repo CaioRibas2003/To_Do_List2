@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="local-storage-banner" style="display:none;padding:0.5rem;border-radius:6px;background:#fff3cd;color:#856404;margin-bottom:1rem;text-align:center;">Running in localStorage test mode — no server DB will be used.</div>
+        <h1>Lista de Tarefas</h1>
+        <div class="legend">
+            <span class="legend-item"><span class="legend-color late"></span> Atrasada</span>
+            <span class="legend-item"><span class="legend-color soon"></span> Prazo em até 2 dias</span>
+            <span class="legend-item"><span class="legend-color normal"></span> Prazo normal</span>
+        </div>
+        <form id="todo-form">
+            <input type="text" id="todo-input" placeholder="Título da tarefa" required>
+            <textarea id="todo-desc-input" placeholder="Descrição da tarefa" rows="2" required></textarea>
+            <div class="form-row-center">
+                <input type="date" id="due-date-input" required>
+                <select id="urgency-input">
+                    <option value="low">Baixa Urgência</option>
+                    <option value="medium">Média Urgência</option>
+                    <option value="high">Alta Urgência</option>
+                </select>
+                <button type="submit">Adicionar</button>
+            </div>
+        </form>
+
+        <!-- Modal for description -->
+        <div id="desc-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="close-modal" class="close">&times;</span>
+                <h3 id="modal-title"></h3>
+                <p id="modal-desc"></p>
+            </div>
+        </div>
+
+        <!-- Modal for background options -->
+        <div id="background-options-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="close-background-options-modal" class="close">&times;</span>
+                <h3>Opções de Fundo</h3>
+                <div class="background-options">
+                    <div class="option-group">
+                        <label>Cor do fundo:</label>
+                        <div class="custom-select" id="background-color-picker">
+                            <div class="select-selected">
+                                <span class="color-indicator" style="background-color: #ffa500;"></span>
+                                <span class="color-name">Laranja</span>
+                            </div>
+                            <div class="select-items select-hide">
+                                <div data-value="blue" class="select-option">
+                                    <span class="color-indicator" style="background-color: #4285f4;"></span>
+                                    <span class="color-name">Azul</span>
+                                </div>
+                                <div data-value="green" class="select-option">
+                                    <span class="color-indicator" style="background-color: #34a853;"></span>
+                                    <span class="color-name">Verde</span>
+                                </div>
+                                <div data-value="pink" class="select-option">
+                                    <span class="color-indicator" style="background-color: #ff69b4;"></span>
+                                    <span class="color-name">Rosa</span>
+                                </div>
+                                <div data-value="orange" class="select-option selected">
+                                    <span class="color-indicator" style="background-color: #ffa500;"></span>
+                                    <span class="color-name">Laranja</span>
+                                </div>
+                                <div data-value="brown" class="select-option">
+                                    <span class="color-indicator" style="background-color: #8b4513;"></span>
+                                    <span class="color-name">Marrom</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <label for="background-image-upload">Ou escolha uma imagem:</label>
+                        <input type="file" id="background-image-upload" accept="image/*">
+                        <button id="remove-background-image" style="display: none;">Remover Imagem</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for selecting task to edit -->
+        <div id="task-selection-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="close-task-selection-modal" class="close">&times;</span>
+                <h3>Escolha uma tarefa para editar</h3>
+                <div id="task-selection-list"></div>
+            </div>
+        </div>
+
+        <!-- Modal for editing task -->
+        <div id="edit-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span id="close-edit-modal" class="close">&times;</span>
+                <h3>Editar Tarefa</h3>
+                <form id="edit-form">
+                    <input type="text" id="edit-title" placeholder="Título da tarefa" required>
+                    <textarea id="edit-desc" placeholder="Descrição da tarefa" rows="2" required></textarea>
+                    <div class="form-row-center">
+                        <input type="date" id="edit-due-date" required>
+                        <select id="edit-urgency">
+                            <option value="low">Baixa Urgência</option>
+                            <option value="medium">Média Urgência</option>
+                            <option value="high">Alta Urgência</option>
+                        </select>
+                        <button type="submit">Salvar</button>
+                        <button type="button" id="cancel-edit">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="columns-container">
+            <div class="column" id="high-urgency-col">
+                <h2>Alta Urgência</h2>
+                <ul id="high-urgency-list"></ul>
+            </div>
+            <div class="column" id="medium-urgency-col">
+                <h2>Média Urgência</h2>
+                <ul id="medium-urgency-list"></ul>
+            </div>
+            <div class="column" id="low-urgency-col">
+                <h2>Baixa Urgência</h2>
+                <ul id="low-urgency-list"></ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bottom-controls">
+        <button id="toggle-edit-mode">Modo de Edição</button>
+        <button id="toggle-color-options">Opções de Fundo</button>
+    </div>
+    
+    <script src="taskApi.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

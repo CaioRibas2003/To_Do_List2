@@ -1,0 +1,25 @@
+{
+  "name": "todo-list-app",
+  "version": "1.0.0",
+  "description": "A todo list application with database backend",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo \"This project is frontend-only in localStorage mode\"",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [
+    "todo",
+    "nodejs",
+    "express",
+    "sqlite"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
