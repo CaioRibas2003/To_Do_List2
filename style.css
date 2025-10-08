@@ -303,7 +303,8 @@ button:hover {
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 99;
+    /* Ensure dropdown options appear above modal overlays */
+    z-index: 1001;
     border: 1px solid #ccc;
     border-top: none;
     border-radius: 0 0 4px 4px;

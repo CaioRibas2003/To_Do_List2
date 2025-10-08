@@ -1,111 +1,35 @@
-// Database API utility functions
-class TaskAPI {
-    constructor() {
-        this.baseURL = window.location.origin;
-    }
+// Toggle for development/testing: when true the frontend will use localStorage
+// instead of hitting the backend API.
+const USE_LOCAL_STORAGE = true;
 
-    async getTasks() {
-        try {
-            const response = await fetch(`${this.baseURL}/api/tasks`);
-            if (!response.ok) throw new Error('Failed to fetch tasks');
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-            return [];
-        }
-    }
+// Small helpers to keep code concise
+const qs = (sel, root = document) => root.querySelector(sel);
+const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-    async addTask(task) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/tasks`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(task)
-            });
-            if (!response.ok) throw new Error('Failed to add task');
-            return await response.json();
-        } catch (error) {
-            console.error('Error adding task:', error);
-            throw error;
-        }
-    }
+// LocalStorage keys
+const LS_TASKS_KEY = 'todo_tasks_v1';
+const LS_SETTINGS_KEY = 'todo_settings_v1';
 
-    async updateTask(id, task) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/tasks/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(task)
-            });
-            if (!response.ok) throw new Error('Failed to update task');
-            return await response.json();
-        } catch (error) {
-            console.error('Error updating task:', error);
-            throw error;
-        }
-    }
-
-    async deleteTask(id) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/tasks/${id}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('Failed to delete task');
-            return await response.json();
-        } catch (error) {
-            console.error('Error deleting task:', error);
-            throw error;
-        }
-    }
-
-    async getSetting(key) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/settings/${key}`);
-            if (!response.ok) throw new Error('Failed to fetch setting');
-            const data = await response.json();
-            return data.value;
-        } catch (error) {
-            console.error('Error fetching setting:', error);
-            return null;
-        }
-    }
-
-    async saveSetting(key, value) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/settings`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ key, value })
-            });
-            if (!response.ok) throw new Error('Failed to save setting');
-            return await response.json();
-        } catch (error) {
-            console.error('Error saving setting:', error);
-            throw error;
-        }
-    }
-
-    async deleteSetting(key) {
-        try {
-            const response = await fetch(`${this.baseURL}/api/settings/${key}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('Failed to delete setting');
-            return await response.json();  
-        } catch (error) {
-            console.error('Error deleting setting:', error);
-            throw error;
-        }
-    }
-}
+// Use the TaskAPI class provided by taskApi.js
+// It exposes `window.TaskAPI` which accepts the same behavior as previous inline class.
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Diagnostic logging to help detect runtime errors when using server-backed mode
+    try {
+        console.log('App starting, USE_LOCAL_STORAGE =', USE_LOCAL_STORAGE);
+    } catch(e) {}
+    window.addEventListener('error', function(evt) {
+        try {
+            console.error('Global error caught:', evt.error || evt.message || evt);
+        } catch(e) {}
+    });
+    // Show banner if running in localStorage mode
+    try {
+        const banner = document.getElementById('local-storage-banner');
+        if (banner && typeof USE_LOCAL_STORAGE !== 'undefined' && USE_LOCAL_STORAGE) {
+            banner.style.display = 'block';
+        }
+    } catch(e) { /* ignore */ }
     const form = document.getElementById('todo-form');
     const input = document.getElementById('todo-input');
     const descInput = document.getElementById('todo-desc-input');
@@ -161,10 +85,39 @@ document.addEventListener('DOMContentLoaded', async function() {
         const selectItems = backgroundColorPicker.querySelector('.select-items');
         const selectOptions = selectItems.querySelectorAll('.select-option');
 
-        // Toggle dropdown
-        selectSelected.addEventListener('click', function() {
-            selectItems.classList.toggle('select-hide');
-            selectSelected.classList.toggle('select-arrow-active');
+        // Toggle dropdown — render options as a fixed-position portal so they aren't
+        // obstructed by modal overlays or other elements.
+        selectSelected.addEventListener('click', function(event) {
+            const isHidden = selectItems.classList.contains('select-hide');
+            if (isHidden) {
+                // Open: position selectItems as fixed in the viewport at the select's rect
+                const rect = selectSelected.getBoundingClientRect();
+                // Move to body so it's on top of modal overlays
+                if (!document.body.contains(selectItems)) {
+                    document.body.appendChild(selectItems);
+                }
+                selectItems.style.position = 'fixed';
+                selectItems.style.left = `${rect.left}px`;
+                selectItems.style.top = `${rect.bottom}px`;
+                selectItems.style.width = `${rect.width}px`;
+                selectItems.style.zIndex = '10050';
+                selectItems.classList.remove('select-hide');
+                selectSelected.classList.add('select-arrow-active');
+            } else {
+                // Close: return to original container and reset styles
+                selectItems.classList.add('select-hide');
+                selectSelected.classList.remove('select-arrow-active');
+                selectItems.style.position = '';
+                selectItems.style.left = '';
+                selectItems.style.top = '';
+                selectItems.style.width = '';
+                selectItems.style.zIndex = '';
+                // try to reattach to picker element if not already
+                if (!backgroundColorPicker.contains(selectItems)) {
+                    backgroundColorPicker.appendChild(selectItems);
+                }
+            }
+            event.stopPropagation();
         });
 
         // Handle option selection
@@ -193,11 +146,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // Close dropdown when clicking outside
+        // Close dropdown when clicking outside (also consider the portaled selectItems)
         document.addEventListener('click', function(e) {
-            if (!backgroundColorPicker.contains(e.target)) {
+            if (!backgroundColorPicker.contains(e.target) && !selectItems.contains(e.target)) {
                 selectItems.classList.add('select-hide');
                 selectSelected.classList.remove('select-arrow-active');
+                // reset portal styles if needed
+                selectItems.style.position = '';
+                selectItems.style.left = '';
+                selectItems.style.top = '';
+                selectItems.style.width = '';
+                selectItems.style.zIndex = '';
+                if (!backgroundColorPicker.contains(selectItems)) {
+                    backgroundColorPicker.appendChild(selectItems);
+                }
             }
         });
     }
@@ -471,98 +433,70 @@ document.addEventListener('DOMContentLoaded', async function() {
         taskSelectionModal.style.display = 'flex';
     }
 
-    function renderTasks() {
-        // Clear all columns
-        highList.innerHTML = '';
-        mediumList.innerHTML = '';
-        lowList.innerHTML = '';
+    function dueStatus(task) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        if (task.dueDate) {
+            const due = new Date(task.dueDate);
+            due.setHours(0,0,0,0);
+            if (due < today) return 0; // late
+            const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+            if (diffDays <= 2) return 1; // close due
+            return 2; // normal
+        }
+        return 2;
+    }
 
-        // Split tasks by urgency
-        const urgencyGroups = {
-            high: [],
-            medium: [],
-            low: []
-        };
-        tasks.forEach(task => {
-            urgencyGroups[task.urgency].push(task);
+    function renderTaskItem(task) {
+        const li = document.createElement('li');
+        const isLate = dueStatus(task) === 0;
+        const isSoon = dueStatus(task) === 1;
+        const dueDateStr = task.dueDate ? `<span style="font-size:0.9em;color:#555;">Prazo: ${formatDate(task.dueDate)}</span> ` : '';
+        const taskTitle = isLate ? task.title.toUpperCase() : task.title;
+        let taskStyle = '';
+        if (isLate) taskStyle = 'color:#c00;font-weight:bold;';
+        else if (isSoon) taskStyle = 'color:orange;font-weight:bold;';
+        else if (task.dueDate) taskStyle = 'color:green;font-weight:bold;';
+
+        const titleHtml = `<strong>${taskTitle}</strong><br>`;
+        const viewBtn = document.createElement('button');
+        viewBtn.textContent = 'Ver descrição';
+        viewBtn.className = 'view-desc-btn';
+        viewBtn.addEventListener('click', () => {
+            modalTitle.textContent = task.title;
+            modalDesc.textContent = task.desc;
+            descModal.style.display = 'flex';
         });
 
-        // Helper to sort by late, soon, normal
-        function dueStatus(task) {
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            if (task.dueDate) {
-                const due = new Date(task.dueDate);
-                due.setHours(0,0,0,0);
-                if (due < today) return 0; // late
-                const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-                if (diffDays <= 2) return 1; // close due
-                return 2; // normal (green)
+        li.innerHTML = `<span style="${taskStyle}">${titleHtml}${dueDateStr}</span>`;
+        li.insertBefore(viewBtn, li.lastChild);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Excluir';
+        delBtn.className = 'delete-btn';
+        delBtn.addEventListener('click', async () => {
+            try {
+                await api.deleteTask(task.id, USE_LOCAL_STORAGE);
+                const idx = tasks.findIndex(t => t.id === task.id);
+                if (idx > -1) tasks.splice(idx, 1);
+                renderTasks();
+            } catch (e) {
+                alert('Erro ao excluir tarefa. Tente novamente.');
             }
-            return 2; // treat no due date as normal
-        }
+        });
+        li.appendChild(delBtn);
+        return li;
+    }
 
-        function renderColumn(listElem, group) {
-            // Sort: late (0), close due (1), normal (2)
-            group.sort((a, b) => dueStatus(a) - dueStatus(b));
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            group.forEach(task => {
-                const li = document.createElement('li');
-                let isLate = false;
-                let isSoon = false;
-                if (task.dueDate) {
-                    const due = new Date(task.dueDate);
-                    due.setHours(0,0,0,0);
-                    if (due < today) {
-                        isLate = true;
-                    } else {
-                        const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-                        if (diffDays <= 2) isSoon = true;
-                    }
-                }
-                let dueDateStr = task.dueDate ? `<span style=\"font-size:0.9em;color:#555;\">Prazo: ${formatDate(task.dueDate)}</span> ` : '';
-                let taskTitle = isLate ? task.title.toUpperCase() : task.title;
-                let taskStyle = '';
-                if (isLate) {
-                    taskStyle = 'color:#c00;font-weight:bold;';
-                } else if (isSoon) {
-                    taskStyle = 'color:orange;font-weight:bold;';
-                } else if (task.dueDate) {
-                    taskStyle = 'color:green;font-weight:bold;';
-                }
-                let titleHtml = `<strong>${taskTitle}</strong><br>`;
-                let viewBtn = document.createElement('button');
-                viewBtn.textContent = 'Ver descrição';
-                viewBtn.className = 'view-desc-btn';
-                viewBtn.onclick = function() {
-                    modalTitle.textContent = task.title;
-                    modalDesc.textContent = task.desc;
-                    descModal.style.display = 'flex';
-                };
-                li.innerHTML = `<span style=\"${taskStyle}\">${titleHtml}${dueDateStr}</span>`;
-                li.insertBefore(viewBtn, li.lastChild);
-                const delBtn = document.createElement('button');
-                delBtn.textContent = 'Excluir';
-                delBtn.className = 'delete-btn';
-                delBtn.onclick = async function() {
-                    try {
-                        await api.deleteTask(task.id);
-                        // Remove from local array
-                        const taskIndex = tasks.findIndex(t => t.id === task.id);
-                        if (taskIndex > -1) {
-                            tasks.splice(taskIndex, 1);
-                        }
-                        renderTasks();
-                    } catch (error) {
-                        alert('Erro ao excluir tarefa. Tente novamente.');
-                    }
-                };
-                li.appendChild(delBtn);
-                listElem.appendChild(li);
-            });
-        }
+    function renderColumn(listElem, group) {
+        group.sort((a, b) => dueStatus(a) - dueStatus(b));
+        listElem.innerHTML = '';
+        group.forEach(task => listElem.appendChild(renderTaskItem(task)));
+    }
 
+    function renderTasks() {
+        const urgencyGroups = { high: [], medium: [], low: [] };
+        tasks.forEach(t => urgencyGroups[t.urgency].push(t));
         renderColumn(highList, urgencyGroups.high);
         renderColumn(mediumList, urgencyGroups.medium);
         renderColumn(lowList, urgencyGroups.low);
