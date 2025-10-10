@@ -1,12 +1,15 @@
-// TaskAPI: storage abstraction supporting localStorage or a server API.
-// This file exports a global `TaskAPI` constructor used by `script.js`.
+// Commit: Docs: traduzir comentários para pt-BR
+// TaskAPI: abstração simples de armazenamento usando localStorage.
+// Exporta globalmente `TaskAPI` usada por `script.js`.
 (function(window){
     class TaskAPI {
         constructor() {
+            // Chaves no localStorage onde guardamos tarefas e configurações
             this.lsTasksKey = 'todo_tasks_v1';
             this.lsSettingsKey = 'todo_settings_v1';
         }
-        _loadTasksFromLS() {
+    // Lê o array de tarefas do localStorage (retorna [] em caso de erro)
+    _loadTasksFromLS() {
             try {
                 const raw = localStorage.getItem(this.lsTasksKey) || '[]';
                 return JSON.parse(raw);
@@ -15,12 +18,15 @@
                 return [];
             }
         }
+        // Persiste o array de tarefas no localStorage
         _saveTasksToLS(tasks) {
             localStorage.setItem(this.lsTasksKey, JSON.stringify(tasks));
         }
+        // Retorna todas as tarefas (local)
         async getTasks() {
             return this._loadTasksFromLS();
         }
+        // Adiciona uma nova tarefa e retorna o objeto criado (com id)
         async addTask(task) {
             const tasks = this._loadTasksFromLS();
             const maxId = tasks.reduce((m, t) => Math.max(m, t.id || 0), 0);
@@ -30,6 +36,7 @@
             this._saveTasksToLS(tasks);
             return newTask;
         }
+        // Atualiza a tarefa com o id informado e retorna o objeto atualizado
         async updateTask(id, task) {
             const tasks = this._loadTasksFromLS();
             const idx = tasks.findIndex(t => t.id === id);
@@ -39,18 +46,22 @@
             this._saveTasksToLS(tasks);
             return updated;
         }
+        // Remove a tarefa com o id informado
         async deleteTask(id) {
             const tasks = this._loadTasksFromLS();
             const filtered = tasks.filter(t => t.id !== id);
             this._saveTasksToLS(filtered);
             return { message: 'Task deleted successfully' };
         }
+        // Recupera uma configuração por chave (ou null se inexistente)
         async getSetting(key) {
             try { const raw = localStorage.getItem(this.lsSettingsKey) || '{}'; const obj = JSON.parse(raw); return obj.hasOwnProperty(key) ? obj[key] : null; } catch(e){ console.error(e); return null; }
         }
+        // Salva/atualiza uma configuração (key -> value)
         async saveSetting(key, value) {
             try { const raw = localStorage.getItem(this.lsSettingsKey) || '{}'; const obj = JSON.parse(raw); obj[key] = value; localStorage.setItem(this.lsSettingsKey, JSON.stringify(obj)); return { key, value, message: 'Setting saved (localStorage)' }; } catch(e){ console.error(e); throw e; }
         }
+        // Remove uma configuração do armazenamento
         async deleteSetting(key) {
             try { const raw = localStorage.getItem(this.lsSettingsKey) || '{}'; const obj = JSON.parse(raw); delete obj[key]; localStorage.setItem(this.lsSettingsKey, JSON.stringify(obj)); return { message: 'Setting deleted (localStorage)' }; } catch(e){ console.error(e); throw e; }
         }

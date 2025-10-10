@@ -1,25 +1,26 @@
-// Toggle for development/testing: when true the frontend will use localStorage
-// instead of hitting the backend API.
+// Commit: Docs: traduzir comentários para pt-BR
+// Alterna modo de desenvolvimento/testes: quando true a interface usa localStorage
+// em vez de chamar um backend.
 const USE_LOCAL_STORAGE = true;
 
-// Small helpers to keep code concise
+// Pequenas funções utilitárias para simplificar consultas ao DOM
 const qs = (sel, root = document) => root.querySelector(sel);
 const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-// (Storage keys are managed by TaskAPI)
+// As chaves de armazenamento são gerenciadas pela classe TaskAPI
 
 // Use the TaskAPI class provided by taskApi.js
 // It exposes `window.TaskAPI` which accepts the same behavior as previous inline class.
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Diagnostic logging
-    console.log('App starting, USE_LOCAL_STORAGE =', USE_LOCAL_STORAGE);
+    // Registro diagnóstico (útil para depuração)
+    console.log('Aplicação iniciando, USE_LOCAL_STORAGE =', USE_LOCAL_STORAGE);
     window.addEventListener('error', function(evt) {
         try {
-            console.error('Global error caught:', evt.error || evt.message || evt);
+            console.error('Erro global capturado:', evt.error || evt.message || evt);
         } catch(e) {}
     });
-    // Note: the UI no longer shows a local-storage banner
+    // Observação: o banner de aviso sobre localStorage foi removido da interface
     const form = document.getElementById('todo-form');
     const input = document.getElementById('todo-input');
     const descInput = document.getElementById('todo-desc-input');
@@ -51,16 +52,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     const backgroundImageUpload = document.getElementById('background-image-upload');
     const removeBackgroundImage = document.getElementById('remove-background-image');
 
-    // Initialize API
+    // Inicializa a API de armazenamento (TaskAPI usa localStorage)
     const api = new TaskAPI();
     
     let tasks = [];
     let editingTaskId = null; // Track which task is being edited (using ID instead of index)
     
-    // Load tasks from storage (TaskAPI handles localStorage/remote)
+    // Carrega as tarefas do armazenamento (TaskAPI lê do localStorage)
     await loadTasks();
 
-    // Color mapping
+    // Mapa de cores para o seletor de fundo
     const colorMap = {
         'blue': { color: '#4285f4', name: 'Azul' },
         'green': { color: '#34a853', name: 'Verde' },
@@ -69,20 +70,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         'brown': { color: '#8b4513', name: 'Marrom' }
     };
 
-    // Custom dropdown functionality
+    // Lógica do dropdown customizado (abrimos a lista no <body> para evitar
+    // que fique atrás de modais)
     function initCustomSelect() {
         const selectSelected = backgroundColorPicker.querySelector('.select-selected');
         const selectItems = backgroundColorPicker.querySelector('.select-items');
         const selectOptions = selectItems.querySelectorAll('.select-option');
 
-        // Toggle dropdown — render options as a fixed-position portal so they aren't
-        // obstructed by modal overlays or other elements.
+    // Ao abrir o dropdown, movemos a lista para o <body> e a posicionamos
+    // com position:fixed para que não seja obstruída por outros elementos.
         selectSelected.addEventListener('click', function(event) {
             const isHidden = selectItems.classList.contains('select-hide');
             if (isHidden) {
-                // Open: position selectItems as fixed in the viewport at the select's rect
+                // Abrir: posiciona selectItems no viewport com base no retângulo do seletor
                 const rect = selectSelected.getBoundingClientRect();
-                // Move to body so it's on top of modal overlays
+                // Move para o body para ficar acima de overlays/modais
                 if (!document.body.contains(selectItems)) {
                     document.body.appendChild(selectItems);
                 }
@@ -94,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 selectItems.classList.remove('select-hide');
                 selectSelected.classList.add('select-arrow-active');
             } else {
-                // Close: return to original container and reset styles
+                // Fechar: retorna para o container original e restaura estilos
                 selectItems.classList.add('select-hide');
                 selectSelected.classList.remove('select-arrow-active');
                 selectItems.style.position = '';
@@ -110,13 +112,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             event.stopPropagation();
         });
 
-        // Handle option selection
+    // Tratamento de clique em opção
         selectOptions.forEach(option => {
             option.addEventListener('click', async function() {
                 const selectedValue = this.getAttribute('data-value');
                 const selectedColorData = colorMap[selectedValue];
                 
-                // Update the selected display
+                // Atualiza o mostrador com a cor e o nome selecionados
                 const selectedIndicator = selectSelected.querySelector('.color-indicator');
                 const selectedName = selectSelected.querySelector('.color-name');
                 selectedIndicator.style.backgroundColor = selectedColorData.color;
@@ -126,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 selectOptions.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
 
-                // Change background color
+                // Aplica a cor ao fundo e salva na configuração
                 document.body.style.backgroundColor = selectedColorData.color;
                 await api.saveSetting('backgroundColor', selectedColorData.color);
 
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // Close dropdown when clicking outside (also consider the portaled selectItems)
+    // Fecha o dropdown ao clicar fora (considera que a lista pode estar ported)
         document.addEventListener('click', function(e) {
             if (!backgroundColorPicker.contains(e.target) && !selectItems.contains(e.target)) {
                 selectItems.classList.add('select-hide');
@@ -154,9 +156,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Load background preferences from storage
+    // Carrega preferências de fundo do armazenamento
     async function loadBackgroundPreferences() {
-        // Load background image from storage if available (check this before color)
+        // Primeiro verifica se há uma imagem de fundo salva (prioridade sobre cor)
         const savedBackgroundImage = await api.getSetting('backgroundImage');
         if (savedBackgroundImage) {
             document.body.style.backgroundImage = `url(${savedBackgroundImage})`;
@@ -168,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Show remove button
             removeBackgroundImage.style.display = 'inline-block';
             
-            // Update color picker display
+            // Atualiza o visual do seletor para indicar imagem personalizada
             const selectSelected = backgroundColorPicker.querySelector('.select-selected');
             const selectedIndicator = selectSelected.querySelector('.color-indicator');
             const selectedName = selectSelected.querySelector('.color-name');
@@ -179,14 +181,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             const selectOptions = backgroundColorPicker.querySelectorAll('.select-option');
             selectOptions.forEach(opt => opt.classList.remove('selected'));
             
-            // Disable color selection since image is active
+            // Desabilita seleção de cor enquanto a imagem estiver ativa
             disableColorSelection();
         } else {
-            // Load background color from storage if available (only if no image)
+            // Carrega cor de fundo (caso não haja imagem)
             const savedBackgroundColor = await api.getSetting('backgroundColor');
             if (savedBackgroundColor) {
                 document.body.style.backgroundColor = savedBackgroundColor;
-                // Find the color name that matches the saved color
+                // Encontra o nome da cor salva para atualizar o seletor
                 const colorName = Object.keys(colorMap).find(key => colorMap[key].color === savedBackgroundColor);
                 if (colorName) {
                     const selectSelected = backgroundColorPicker.querySelector('.select-selected');
@@ -205,18 +207,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                 }
             } else {
-                // Set default orange background if no preferences saved
+                // Se não houver preferência, usa laranja como padrão e salva
                 document.body.style.backgroundColor = '#ffa500';
                 await api.saveSetting('backgroundColor', '#ffa500');
             }
         }
     }
 
-    // Initialize custom select and load background preferences
+    // Inicializa o seletor e carrega as preferências de fundo
     initCustomSelect();
     await loadBackgroundPreferences();
 
-    // Background image upload functionality
+    // Upload de imagem para o fundo
     backgroundImageUpload.addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (file && file.type.startsWith('image/')) {
@@ -229,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.body.style.backgroundRepeat = 'no-repeat';
                 document.body.style.backgroundAttachment = 'fixed';
                 
-                // Save image to storage
+                // Salva a imagem no armazenamento (localStorage)
                 await api.saveSetting('backgroundImage', imageDataUrl);
                 await api.deleteSetting('backgroundColor'); // Clear color preference
                 
@@ -247,14 +249,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const selectOptions = backgroundColorPicker.querySelectorAll('.select-option');
                 selectOptions.forEach(opt => opt.classList.remove('selected'));
                 
-                // Disable color selection
+                // Desabilita seleção de cor quando a imagem é usada
                 disableColorSelection();
             };
             reader.readAsDataURL(file);
         }
     });
 
-    // Remove background image functionality
+    // Remover imagem de fundo
     removeBackgroundImage.addEventListener('click', async function() {
         // Remove background image
         document.body.style.backgroundImage = '';
@@ -263,12 +265,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.body.style.backgroundRepeat = '';
         document.body.style.backgroundAttachment = '';
         
-        // Restore default orange background
-        document.body.style.backgroundColor = '#ffa500';
-        
-    // Clear storage settings
+    // Restaura cor padrão e limpa configuração de imagem
+    document.body.style.backgroundColor = '#ffa500';
     await api.deleteSetting('backgroundImage');
-        await api.saveSetting('backgroundColor', '#ffa500');
+    await api.saveSetting('backgroundColor', '#ffa500');
         
         // Hide remove button
         removeBackgroundImage.style.display = 'none';
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Reset file input
         backgroundImageUpload.value = '';
         
-        // Reset color picker to orange
+    // Ajusta o seletor para mostrar Laranja como selecionado
         const selectSelected = backgroundColorPicker.querySelector('.select-selected');
         const selectedIndicator = selectSelected.querySelector('.color-indicator');
         const selectedName = selectSelected.querySelector('.color-name');
@@ -292,25 +292,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         
-        // Re-enable color selection
+        // Reativa seleção de cores
         enableColorSelection();
     });
 
-    // Function to disable color selection when image is set
+    // Desativa seleção de cor enquanto houver imagem de fundo
     function disableColorSelection() {
         const colorOptionGroup = backgroundOptionsModal.querySelector('.option-group:first-child');
         colorOptionGroup.classList.add('disabled');
         backgroundColorPicker.classList.add('disabled');
     }
 
-    // Function to enable color selection when image is removed
+    // Reativa seleção de cor quando a imagem é removida
     function enableColorSelection() {
         const colorOptionGroup = backgroundOptionsModal.querySelector('.option-group:first-child');
         colorOptionGroup.classList.remove('disabled');
         backgroundColorPicker.classList.remove('disabled');
     }
 
-    // Load tasks from storage
+    // Carrega tarefas do localStorage
     async function loadTasks() {
         try {
             tasks = await api.getTasks();
@@ -321,6 +321,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    // Envio do formulário para criar nova tarefa
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const title = input.value.trim();
@@ -346,7 +347,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // Edit form submission handler
+    // Envio do formulário de edição
     editForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         if (editingTaskId) {
@@ -357,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             if (title && desc && dueDate) {
                 try {
-                    // Update the task in storage
+                    // Atualiza a tarefa no armazenamento
                     await api.updateTask(editingTaskId, { title, desc, urgency, dueDate });
                     
                     // Update local tasks array
@@ -384,7 +385,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // Function to show task selection modal
+    // Abre modal para selecionar tarefa a editar
     function showTaskSelectionModal() {
         taskSelectionList.innerHTML = '';
         
@@ -423,6 +424,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         taskSelectionModal.style.display = 'flex';
     }
 
+    // Calcula o status em relação ao prazo (0: atrasada, 1: próxima, 2: normal)
     function dueStatus(task) {
         const today = new Date();
         today.setHours(0,0,0,0);
@@ -437,6 +439,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         return 2;
     }
 
+    // Renderiza um item de tarefa (botões, estilos de prazo)
     function renderTaskItem(task) {
         const li = document.createElement('li');
         const isLate = dueStatus(task) === 0;
@@ -449,7 +452,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         else if (task.dueDate) taskStyle = 'color:green;font-weight:bold;';
 
         const titleHtml = `<strong>${taskTitle}</strong><br>`;
-        const viewBtn = document.createElement('button');
+    const viewBtn = document.createElement('button');
         viewBtn.textContent = 'Ver descrição';
         viewBtn.className = 'view-desc-btn';
         viewBtn.addEventListener('click', () => {
@@ -461,7 +464,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         li.innerHTML = `<span style="${taskStyle}">${titleHtml}${dueDateStr}</span>`;
         li.insertBefore(viewBtn, li.lastChild);
 
-        const delBtn = document.createElement('button');
+    const delBtn = document.createElement('button');
         delBtn.textContent = 'Excluir';
         delBtn.className = 'delete-btn';
         delBtn.addEventListener('click', async () => {
@@ -478,12 +481,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         return li;
     }
 
+    // Renderiza uma coluna de tarefas por nível de urgência
     function renderColumn(listElem, group) {
         group.sort((a, b) => dueStatus(a) - dueStatus(b));
         listElem.innerHTML = '';
         group.forEach(task => listElem.appendChild(renderTaskItem(task)));
     }
 
+    // Renderiza todas as tarefas nas suas colunas
     function renderTasks() {
         const urgencyGroups = { high: [], medium: [], low: [] };
         tasks.forEach(t => urgencyGroups[t.urgency].push(t));
@@ -492,7 +497,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         renderColumn(lowList, urgencyGroups.low);
     }
 
-    // Modal close logic
+    // Lógica de fechamento de modais
     closeModal.onclick = function() {
         descModal.style.display = 'none';
     };
@@ -515,12 +520,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         editingTaskId = null;
     };
     
-    // Toggle color options modal
+    // Botão que abre as opções de cor/fundo
     toggleColorOptions.addEventListener('click', function() {
         backgroundOptionsModal.style.display = 'flex';
     });
 
-    // Show task selection modal for editing
+    // Botão para entrar no modo de edição (selecionar tarefa para editar)
     toggleEditMode.addEventListener('click', function() {
         if (tasks.length === 0) {
             alert('Não há tarefas para editar!');
@@ -529,6 +534,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         showTaskSelectionModal();
     });
     
+    // Fecha modais ao clicar fora
     window.onclick = function(event) {
         if (event.target === descModal) {
             descModal.style.display = 'none';
@@ -544,11 +550,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     };
 
+    // Formata datas para pt-BR
     function formatDate(dateStr) {
         const d = new Date(dateStr);
         if (isNaN(d)) return dateStr;
         return d.toLocaleDateString('pt-BR');
     }
 
-    // renderTasks() is invoked by loadTasks after tasks are loaded
+    // renderTasks() é chamado por loadTasks após carregar as tarefas
 });
