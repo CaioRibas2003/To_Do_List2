@@ -9,8 +9,8 @@ const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 // As chaves de armazenamento são gerenciadas pela classe TaskAPI
 
-// Use the TaskAPI class provided by taskApi.js
-// It exposes `window.TaskAPI` which accepts the same behavior as previous inline class.
+// Usa a classe TaskAPI fornecida em taskApi.js
+// Ela expõe `window.TaskAPI` com as operações de armazenamento usadas pela UI.
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Registro diagnóstico (útil para depuração)
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const api = new TaskAPI();
     
     let tasks = [];
-    let editingTaskId = null; // Track which task is being edited (using ID instead of index)
+    let editingTaskId = null; // Identifica a tarefa em edição (usa id em vez de índice)
     
     // Carrega as tarefas do armazenamento (TaskAPI lê do localStorage)
     await loadTasks();
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 selectItems.style.top = '';
                 selectItems.style.width = '';
                 selectItems.style.zIndex = '';
-                // try to reattach to picker element if not already
+                // tenta reanexar a lista ao picker caso ela tenha sido movida para o <body>
                 if (!backgroundColorPicker.contains(selectItems)) {
                     backgroundColorPicker.appendChild(selectItems);
                 }
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 selectedIndicator.style.backgroundColor = selectedColorData.color;
                 selectedName.textContent = selectedColorData.name;
 
-                // Update selected state
+                // Atualiza estado selecionado
                 selectOptions.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
 
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.body.style.backgroundColor = selectedColorData.color;
                 await api.saveSetting('backgroundColor', selectedColorData.color);
 
-                // Close dropdown
+                // Fecha o dropdown
                 selectItems.classList.add('select-hide');
                 selectSelected.classList.remove('select-arrow-active');
             });
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.body.style.backgroundRepeat = 'no-repeat';
             document.body.style.backgroundAttachment = 'fixed';
             
-            // Show remove button
+            // Exibe o botão de remover imagem
             removeBackgroundImage.style.display = 'inline-block';
             
             // Atualiza o visual do seletor para indicar imagem personalizada
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             selectedIndicator.style.backgroundColor = '#f0f0f0';
             selectedName.textContent = 'Imagem personalizada';
             
-            // Clear selected state from color options
+            // Limpa a seleção nas opções de cor
             const selectOptions = backgroundColorPicker.querySelectorAll('.select-option');
             selectOptions.forEach(opt => opt.classList.remove('selected'));
             
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     selectedIndicator.style.backgroundColor = colorMap[colorName].color;
                     selectedName.textContent = colorMap[colorName].name;
 
-                    // Update selected state in options
+                    // Atualiza o estado selecionado nas opções
                     const selectOptions = backgroundColorPicker.querySelectorAll('.select-option');
                     selectOptions.forEach(opt => {
                         opt.classList.remove('selected');
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 await api.saveSetting('backgroundImage', imageDataUrl);
                 await api.deleteSetting('backgroundColor'); // Clear color preference
                 
-                // Show remove button
+                // Mostra o botão de remover a imagem
                 removeBackgroundImage.style.display = 'inline-block';
                 
                 // Reset color picker to show no selection
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 selectedIndicator.style.backgroundColor = '#f0f0f0';
                 selectedName.textContent = 'Imagem personalizada';
                 
-                // Clear selected state from color options
+                // Limpa a seleção das opções de cor
                 const selectOptions = backgroundColorPicker.querySelectorAll('.select-option');
                 selectOptions.forEach(opt => opt.classList.remove('selected'));
                 
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const newTask = await api.addTask({ title, desc, urgency, dueDate });
                 tasks.push(newTask);
                 
-                // Clear form
+                // Limpa o formulário
                 input.value = '';
                 descInput.value = '';
                 urgencyInput.value = 'low';
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Atualiza a tarefa no armazenamento
                     await api.updateTask(editingTaskId, { title, desc, urgency, dueDate });
                     
-                    // Update local tasks array
+                    // Atualiza o array local de tarefas
                     const taskIndex = tasks.findIndex(task => task.id === editingTaskId);
                     if (taskIndex > -1) {
                         tasks[taskIndex] = { ...tasks[taskIndex], title, desc, urgency, dueDate };
@@ -369,11 +369,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     renderTasks();
                     
-                    // Close modal and reset
+                    // Fecha modal e reseta estado
                     editModal.style.display = 'none';
                     editingTaskId = null;
                     
-                    // Clear form
+                    // Limpa o formulário de edição
                     editTitle.value = '';
                     editDesc.value = '';
                     editUrgency.value = 'low';
@@ -469,7 +469,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         delBtn.className = 'delete-btn';
         delBtn.addEventListener('click', async () => {
             try {
-                await api.deleteTask(task.id, USE_LOCAL_STORAGE);
+                await api.deleteTask(task.id);
                 const idx = tasks.findIndex(t => t.id === task.id);
                 if (idx > -1) tasks.splice(idx, 1);
                 renderTasks();
