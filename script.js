@@ -6,30 +6,20 @@ const USE_LOCAL_STORAGE = true;
 const qs = (sel, root = document) => root.querySelector(sel);
 const qsa = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-// LocalStorage keys
-const LS_TASKS_KEY = 'todo_tasks_v1';
-const LS_SETTINGS_KEY = 'todo_settings_v1';
+// (Storage keys are managed by TaskAPI)
 
 // Use the TaskAPI class provided by taskApi.js
 // It exposes `window.TaskAPI` which accepts the same behavior as previous inline class.
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Diagnostic logging to help detect runtime errors when using server-backed mode
-    try {
-        console.log('App starting, USE_LOCAL_STORAGE =', USE_LOCAL_STORAGE);
-    } catch(e) {}
+    // Diagnostic logging
+    console.log('App starting, USE_LOCAL_STORAGE =', USE_LOCAL_STORAGE);
     window.addEventListener('error', function(evt) {
         try {
             console.error('Global error caught:', evt.error || evt.message || evt);
         } catch(e) {}
     });
-    // Show banner if running in localStorage mode
-    try {
-        const banner = document.getElementById('local-storage-banner');
-        if (banner && typeof USE_LOCAL_STORAGE !== 'undefined' && USE_LOCAL_STORAGE) {
-            banner.style.display = 'block';
-        }
-    } catch(e) { /* ignore */ }
+    // Note: the UI no longer shows a local-storage banner
     const form = document.getElementById('todo-form');
     const input = document.getElementById('todo-input');
     const descInput = document.getElementById('todo-desc-input');
@@ -67,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     let tasks = [];
     let editingTaskId = null; // Track which task is being edited (using ID instead of index)
     
-    // Load tasks from database
+    // Load tasks from storage (TaskAPI handles localStorage/remote)
     await loadTasks();
 
     // Color mapping
@@ -164,9 +154,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Load background preferences from database
+    // Load background preferences from storage
     async function loadBackgroundPreferences() {
-        // Load background image from database if available (check this before color)
+        // Load background image from storage if available (check this before color)
         const savedBackgroundImage = await api.getSetting('backgroundImage');
         if (savedBackgroundImage) {
             document.body.style.backgroundImage = `url(${savedBackgroundImage})`;
@@ -192,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Disable color selection since image is active
             disableColorSelection();
         } else {
-            // Load background color from database if available (only if no image)
+            // Load background color from storage if available (only if no image)
             const savedBackgroundColor = await api.getSetting('backgroundColor');
             if (savedBackgroundColor) {
                 document.body.style.backgroundColor = savedBackgroundColor;
@@ -239,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.body.style.backgroundRepeat = 'no-repeat';
                 document.body.style.backgroundAttachment = 'fixed';
                 
-                // Save image to database
+                // Save image to storage
                 await api.saveSetting('backgroundImage', imageDataUrl);
                 await api.deleteSetting('backgroundColor'); // Clear color preference
                 
@@ -276,8 +266,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Restore default orange background
         document.body.style.backgroundColor = '#ffa500';
         
-        // Clear database settings
-        await api.deleteSetting('backgroundImage');
+    // Clear storage settings
+    await api.deleteSetting('backgroundImage');
         await api.saveSetting('backgroundColor', '#ffa500');
         
         // Hide remove button
@@ -320,7 +310,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         backgroundColorPicker.classList.remove('disabled');
     }
 
-    // Load tasks from database
+    // Load tasks from storage
     async function loadTasks() {
         try {
             tasks = await api.getTasks();
@@ -367,7 +357,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             if (title && desc && dueDate) {
                 try {
-                    // Update the task in database
+                    // Update the task in storage
                     await api.updateTask(editingTaskId, { title, desc, urgency, dueDate });
                     
                     // Update local tasks array
@@ -560,6 +550,5 @@ document.addEventListener('DOMContentLoaded', async function() {
         return d.toLocaleDateString('pt-BR');
     }
 
-    // Initial render
-    renderTasks();
+    // renderTasks() is invoked by loadTasks after tasks are loaded
 });

@@ -1,6 +1,0 @@
-node_modules/
-*.db
-package-lock.json
-.env
-*.log
-server_test.pid
