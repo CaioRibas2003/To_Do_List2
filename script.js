@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         controls.className = 'calendar-controls';
         const prevBtn = document.createElement('button'); prevBtn.textContent = '<';
         const nextBtn = document.createElement('button'); nextBtn.textContent = '>';
-        const todayBtn = document.createElement('button'); todayBtn.textContent = 'Hoje';
+    const todayBtn = document.createElement('button'); todayBtn.textContent = 'Voltar ao mês atual';
         controls.appendChild(prevBtn);
         controls.appendChild(todayBtn);
         controls.appendChild(nextBtn);
