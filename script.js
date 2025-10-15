@@ -341,6 +341,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 dueDateInput.value = '';
                 
                 renderTasks();
+                if (calendarVisible) {
+                    // If calendar is showing, refresh it so the new task appears
+                    renderCalendar(currentYear, currentMonth);
+                }
             } catch (error) {
                 alert('Erro ao adicionar tarefa. Tente novamente.');
             }
