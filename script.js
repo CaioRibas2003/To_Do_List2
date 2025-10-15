@@ -368,6 +368,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                     
                     renderTasks();
+                    if (calendarVisible) {
+                        renderCalendar(currentYear, currentMonth);
+                    }
                     
                     // Fecha modal e reseta estado
                     editModal.style.display = 'none';
@@ -464,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         else if (task.dueDate) taskStyle = 'color:green;font-weight:bold;';
 
         const titleHtml = `<strong>${taskTitle}</strong><br>`;
-    const viewBtn = document.createElement('button');
+        const viewBtn = document.createElement('button');
         viewBtn.textContent = 'Ver descrição';
         viewBtn.className = 'view-desc-btn';
         viewBtn.addEventListener('click', () => {
@@ -476,7 +479,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         li.innerHTML = `<span style="${taskStyle}">${titleHtml}${dueDateStr}</span>`;
         li.insertBefore(viewBtn, li.lastChild);
 
-    const delBtn = document.createElement('button');
+        const delBtn = document.createElement('button');
         delBtn.textContent = 'Excluir';
         delBtn.className = 'delete-btn';
         delBtn.addEventListener('click', async () => {
@@ -485,6 +488,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const idx = tasks.findIndex(t => t.id === task.id);
                 if (idx > -1) tasks.splice(idx, 1);
                 renderTasks();
+                if (calendarVisible) {
+                    renderCalendar(currentYear, currentMonth);
+                }
             } catch (e) {
                 alert('Erro ao excluir tarefa. Tente novamente.');
             }
@@ -556,6 +562,148 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         showTaskSelectionModal();
     });
+    
+    // Toggle calendar view
+    const toggleCalendarViewBtn = document.getElementById('toggle-calendar-view');
+    const calendarContainer = document.getElementById('calendar-container');
+    let calendarVisible = false;
+    let currentMonth = (new Date()).getMonth();
+    let currentYear = (new Date()).getFullYear();
+
+    toggleCalendarViewBtn.addEventListener('click', function() {
+        calendarVisible = !calendarVisible;
+        if (calendarVisible) {
+            // show calendar, hide columns container
+            document.querySelector('.columns-container').style.display = 'none';
+            calendarContainer.style.display = 'block';
+            toggleCalendarViewBtn.classList.add('active');
+            renderCalendar(currentYear, currentMonth);
+        } else {
+            document.querySelector('.columns-container').style.display = 'flex';
+            calendarContainer.style.display = 'none';
+            toggleCalendarViewBtn.classList.remove('active');
+        }
+    });
+
+    // Helpers to render calendar grid and tasks
+    function startOfMonth(year, month) {
+        return new Date(year, month, 1);
+    }
+    function endOfMonth(year, month) {
+        return new Date(year, month + 1, 0);
+    }
+
+    function renderCalendar(year, month) {
+        calendarContainer.innerHTML = '';
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        const title = document.createElement('div');
+        title.textContent = `${startOfMonth(year, month).toLocaleString('pt-BR', { month: 'long' })} ${year}`;
+        const controls = document.createElement('div');
+        controls.className = 'calendar-controls';
+        const prevBtn = document.createElement('button'); prevBtn.textContent = '<';
+        const nextBtn = document.createElement('button'); nextBtn.textContent = '>';
+        const todayBtn = document.createElement('button'); todayBtn.textContent = 'Hoje';
+        controls.appendChild(prevBtn);
+        controls.appendChild(todayBtn);
+        controls.appendChild(nextBtn);
+        header.appendChild(title);
+        header.appendChild(controls);
+        calendarContainer.appendChild(header);
+
+        // Weekday headers
+        const grid = document.createElement('div');
+        grid.className = 'calendar-grid';
+        const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        weekdays.forEach(w => {
+            const wdiv = document.createElement('div');
+            wdiv.className = 'calendar-weekday';
+            wdiv.textContent = w;
+            grid.appendChild(wdiv);
+        });
+
+        // Build the cells for the month (including leading/trailing days)
+        const start = startOfMonth(year, month);
+        const end = endOfMonth(year, month);
+        const startDay = start.getDay(); // 0 (Sun) - 6 (Sat)
+        const daysInMonth = end.getDate();
+        // Determine how many preceding days from previous month to show
+        const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
+        const cells = [];
+        for (let i = 0; i < totalCells; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell';
+            grid.appendChild(cell);
+            cells.push(cell);
+        }
+
+        // Fill cells with dates
+        let dayCounter = 1 - startDay; // starts possibly negative
+        for (let i = 0; i < totalCells; i++, dayCounter++) {
+            const cell = cells[i];
+            const cellDate = new Date(year, month, dayCounter);
+            const dateNum = cellDate.getDate();
+            const isInMonth = (cellDate.getMonth() === month);
+            if (!isInMonth) cell.classList.add('inactive');
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'date-number';
+            dateDiv.textContent = dateNum;
+            cell.appendChild(dateDiv);
+
+            // Render tasks due on this date
+            const tasksForDay = tasks.filter(t => {
+                if (!t.dueDate) return false;
+                const d = parseLocalDate(t.dueDate);
+                if (!d) return false;
+                return d.getFullYear() === cellDate.getFullYear() && d.getMonth() === cellDate.getMonth() && d.getDate() === cellDate.getDate();
+            });
+            tasksForDay.forEach(task => {
+                const pill = document.createElement('div');
+                pill.className = `task-pill ${task.urgency}`;
+                pill.title = task.title;
+                pill.textContent = task.title;
+                // Click opens description modal (reuse existing modal)
+                pill.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    modalTitle.textContent = task.title;
+                    modalDesc.textContent = task.desc;
+                    descModal.style.display = 'flex';
+                    // Also allow quick edit on double-click
+                });
+                // Right-click to open edit modal
+                pill.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    editingTaskId = task.id;
+                    editTitle.value = task.title;
+                    editDesc.value = task.desc;
+                    editDueDate.value = task.dueDate;
+                    editUrgency.value = task.urgency;
+                    editModal.style.display = 'flex';
+                });
+                cell.appendChild(pill);
+            });
+        }
+
+        calendarContainer.appendChild(grid);
+
+        // Wire navigation
+        prevBtn.addEventListener('click', () => {
+            currentMonth -= 1;
+            if (currentMonth < 0) { currentMonth = 11; currentYear -= 1; }
+            renderCalendar(currentYear, currentMonth);
+        });
+        nextBtn.addEventListener('click', () => {
+            currentMonth += 1;
+            if (currentMonth > 11) { currentMonth = 0; currentYear += 1; }
+            renderCalendar(currentYear, currentMonth);
+        });
+        todayBtn.addEventListener('click', () => {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            renderCalendar(currentYear, currentMonth);
+        });
+    }
     
     // Fecha modais ao clicar fora
     window.onclick = function(event) {
