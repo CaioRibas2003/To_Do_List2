@@ -425,15 +425,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Calcula o status em relação ao prazo (0: atrasada, 1: próxima, 2: normal)
+    // Analisa uma string 'YYYY-MM-DD' e retorna uma Date no timezone local
+    function parseLocalDate(dateStr) {
+        if (!dateStr) return null;
+        // dateStr expected format: YYYY-MM-DD
+        const parts = dateStr.split('-').map(p => parseInt(p, 10));
+        if (parts.length !== 3 || parts.some(isNaN)) return new Date(dateStr);
+        const [y, m, d] = parts;
+        // monthIndex is zero-based
+        return new Date(y, m - 1, d);
+    }
+
     function dueStatus(task) {
         const today = new Date();
         today.setHours(0,0,0,0);
         if (task.dueDate) {
-            const due = new Date(task.dueDate);
+            const due = parseLocalDate(task.dueDate);
+            if (!due || isNaN(due.getTime())) return 2;
             due.setHours(0,0,0,0);
-            if (due < today) return 0; // late
+            if (due < today) return 0; // atrasada
             const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-            if (diffDays <= 2) return 1; // close due
+            if (diffDays <= 2) return 1; // próxima
             return 2; // normal
         }
         return 2;
@@ -550,9 +562,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     };
 
-    // Formata datas para pt-BR
+    // Formata string 'YYYY-MM-DD' para pt-BR usando data local
     function formatDate(dateStr) {
-        const d = new Date(dateStr);
+        const d = parseLocalDate(dateStr) || new Date(dateStr);
         if (isNaN(d)) return dateStr;
         return d.toLocaleDateString('pt-BR');
     }
