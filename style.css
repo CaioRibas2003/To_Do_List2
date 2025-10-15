@@ -447,7 +447,7 @@ button:hover {
     background: #a71d2a;
 }
 
-#toggle-edit-mode, #toggle-color-options {
+#toggle-edit-mode, #toggle-color-options, #toggle-calendar-view {
     background: white;
     color: #333;
     border: 1px solid #ddd;
@@ -460,19 +460,19 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-#toggle-edit-mode:hover, #toggle-color-options:hover {
+#toggle-edit-mode:hover, #toggle-color-options:hover, #toggle-calendar-view:hover {
     background: #f8f9fa;
     border-color: #adb5bd;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-#toggle-edit-mode.active {
+#toggle-edit-mode.active, #toggle-calendar-view.active {
     background: #dc3545;
     color: white;
 }
 
-#toggle-edit-mode.active:hover {
+#toggle-edit-mode.active:hover, #toggle-calendar-view.active:hover {
     background: #c82333;
 }
 
