@@ -638,6 +638,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // Fill cells with dates
+        const today = new Date();
+        today.setHours(0,0,0,0);
         let dayCounter = 1 - startDay; // starts possibly negative
         for (let i = 0; i < totalCells; i++, dayCounter++) {
             const cell = cells[i];
@@ -649,6 +651,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             dateDiv.className = 'date-number';
             dateDiv.textContent = dateNum;
             cell.appendChild(dateDiv);
+
+            // If this date is today (local), add a blue circular badge
+            const cellCopy = new Date(cellDate);
+            cellCopy.setHours(0,0,0,0);
+            if (cellCopy.getTime() === today.getTime()) {
+                const badge = document.createElement('div');
+                badge.className = 'today-badge';
+                cell.appendChild(badge);
+            }
 
             // Render tasks due on this date
             const tasksForDay = tasks.filter(t => {

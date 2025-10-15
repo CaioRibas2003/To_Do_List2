@@ -287,6 +287,17 @@ button:hover {
     font-weight: bold;
     margin-bottom: 6px;
 }
+.calendar-cell .today-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #1976d2; /* blue */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    border: 2px solid #fff;
+}
 .task-pill {
     display: block;
     padding: 4px 6px;
