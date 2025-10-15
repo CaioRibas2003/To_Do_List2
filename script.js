@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.querySelector('.columns-container').style.display = 'none';
             calendarContainer.style.display = 'block';
             toggleCalendarViewBtn.classList.add('active');
-            toggleCalendarViewBtn.textContent = 'Visualizar lista';
+            toggleCalendarViewBtn.textContent = 'Visualizar Lista';
             renderCalendar(currentYear, currentMonth);
         } else {
             document.querySelector('.columns-container').style.display = 'flex';
