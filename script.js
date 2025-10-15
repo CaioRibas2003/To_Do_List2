@@ -495,7 +495,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Renderiza uma coluna de tarefas por nível de urgência
     function renderColumn(listElem, group) {
-        group.sort((a, b) => dueStatus(a) - dueStatus(b));
+        group.sort((a, b) => {
+            const sa = dueStatus(a);
+            const sb = dueStatus(b);
+            if (sa !== sb) return sa - sb; // prioriza atrasadas -> próximas -> normais
+            // mesma categoria: ordena por data (mais próxima primeiro)
+            const da = a.dueDate ? parseLocalDate(a.dueDate) : null;
+            const db = b.dueDate ? parseLocalDate(b.dueDate) : null;
+            if (da && db) return da - db;
+            if (da && !db) return -1;
+            if (!da && db) return 1;
+            return 0;
+        });
         listElem.innerHTML = '';
         group.forEach(task => listElem.appendChild(renderTaskItem(task)));
     }
