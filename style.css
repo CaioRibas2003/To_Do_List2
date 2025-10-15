@@ -467,13 +467,23 @@ button:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-#toggle-edit-mode.active, #toggle-calendar-view.active {
+/* Keep edit-mode active styling, but avoid making the layout toggle red */
+#toggle-edit-mode.active {
     background: #dc3545;
     color: white;
 }
 
-#toggle-edit-mode.active:hover, #toggle-calendar-view.active:hover {
+#toggle-edit-mode.active:hover {
     background: #c82333;
+}
+
+/* The layout toggle should not flash red when active; use subtle active state */
+#toggle-calendar-view.active {
+    background: #e9ecef; /* same as hover state */
+    color: #333;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 #task-selection-list {
