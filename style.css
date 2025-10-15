@@ -289,14 +289,17 @@ button:hover {
 }
 .calendar-cell .today-badge {
     position: absolute;
+    /* overlap the date number (top-left) but remain small so the digit is still readable */
     top: 6px;
-    right: 6px;
-    width: 14px;
-    height: 14px;
+    left: 6px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #1976d2; /* blue */
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     border: 2px solid #fff;
+    opacity: 0.78; /* slightly transparent so the number underneath remains visible */
+    pointer-events: none; /* don't block clicks */
 }
 .task-pill {
     display: block;
