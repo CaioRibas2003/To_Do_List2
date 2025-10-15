@@ -581,11 +581,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.querySelector('.columns-container').style.display = 'none';
             calendarContainer.style.display = 'block';
             toggleCalendarViewBtn.classList.add('active');
+            toggleCalendarViewBtn.textContent = 'Visualizar lista';
             renderCalendar(currentYear, currentMonth);
         } else {
             document.querySelector('.columns-container').style.display = 'flex';
             calendarContainer.style.display = 'none';
             toggleCalendarViewBtn.classList.remove('active');
+            toggleCalendarViewBtn.textContent = 'Visualizar Calendário';
         }
     });
 
