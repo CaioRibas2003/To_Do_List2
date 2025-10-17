@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     renderCalendar(currentYear, currentMonth);
                 }
             } catch (error) {
-                alert('Erro ao adicionar tarefa. Tente novamente.');
+                console.error('Erro ao adicionar tarefa:', error);
             }
         }
     });
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     editUrgency.value = 'low';
                     editDueDate.value = '';
                 } catch (error) {
-                    alert('Erro ao atualizar tarefa. Tente novamente.');
+                    console.error('Erro ao atualizar tarefa:', error);
                 }
             }
         }
@@ -560,8 +560,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (descDeleteBtn) {
         descDeleteBtn.addEventListener('click', async function() {
             if (!viewingTaskId) return;
-            const confirmed = confirm('Tem certeza que deseja excluir esta tarefa?');
-            if (!confirmed) return;
             try {
                 await api.deleteTask(viewingTaskId);
                 const idx = tasks.findIndex(t => t.id === viewingTaskId);
@@ -571,7 +569,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 renderTasks();
                 if (calendarVisible) renderCalendar(currentYear, currentMonth);
             } catch (e) {
-                alert('Erro ao excluir tarefa. Tente novamente.');
+                console.error('Erro ao excluir tarefa:', e);
             }
         });
     }
@@ -579,8 +577,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (descCompleteBtn) {
         descCompleteBtn.addEventListener('click', async function() {
             if (!viewingTaskId) return;
-            const confirmed = confirm('Marcar esta tarefa como concluída? Isso removerá a tarefa.');
-            if (!confirmed) return;
             try {
                 await api.deleteTask(viewingTaskId);
                 const idx = tasks.findIndex(t => t.id === viewingTaskId);
@@ -590,7 +586,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 renderTasks();
                 if (calendarVisible) renderCalendar(currentYear, currentMonth);
             } catch (e) {
-                alert('Erro ao marcar tarefa como concluída. Tente novamente.');
+                console.error('Erro ao marcar tarefa como concluída:', e);
             }
         });
     }
