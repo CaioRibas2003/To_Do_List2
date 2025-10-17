@@ -6,6 +6,7 @@
         constructor() {
             // Chaves no localStorage onde guardamos tarefas e configurações
             this.lsTasksKey = 'todo_tasks_v1';
+            this.lsCompletedKey = 'todo_completed_v1';
             this.lsSettingsKey = 'todo_settings_v1';
         }
     // Lê o array de tarefas do localStorage (retorna [] em caso de erro)
@@ -52,6 +53,30 @@
             const filtered = tasks.filter(t => t.id !== id);
             this._saveTasksToLS(filtered);
             return { message: 'Task deleted successfully' };
+        }
+        // Completed tasks handling (history)
+        _loadCompletedFromLS() {
+            try {
+                const raw = localStorage.getItem(this.lsCompletedKey) || '[]';
+                return JSON.parse(raw);
+            } catch (e) {
+                console.error('Failed to parse completed tasks from localStorage', e);
+                return [];
+            }
+        }
+        _saveCompletedToLS(list) {
+            localStorage.setItem(this.lsCompletedKey, JSON.stringify(list));
+        }
+        // Add a completed task record (should include at least id, title, completedAt, original task fields)
+        async addCompletedTask(record) {
+            const list = this._loadCompletedFromLS();
+            list.unshift(record);
+            this._saveCompletedToLS(list);
+            return record;
+        }
+        // Return completed task records
+        async getCompletedTasks() {
+            return this._loadCompletedFromLS();
         }
         // Recupera uma configuração por chave (ou null se inexistente)
         async getSetting(key) {

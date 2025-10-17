@@ -562,6 +562,13 @@ button:hover {
     font-style: italic;
 }
 
+/* Dados page styles */
+#pie-chart { display:inline-block; vertical-align:middle; }
+#pie-legend { margin-top:0.6rem; }
+#completed-list { list-style:none; padding:0; }
+#completed-list li { padding:0.4rem 0; border-bottom:1px solid #eee; }
+#goal-input { min-width:120px; }
+
 .custom-select.disabled {
     opacity: 0.6;
     pointer-events: none;

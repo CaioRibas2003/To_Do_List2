@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dados — To-Do</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Dados da Semana</h1>
+    <section id="completed-summary">
+      <h2>Concluídas nos últimos 7 dias (<span id="completed-count">0</span>)</h2>
+      <ul id="completed-list"></ul>
+    </section>
+
+    <section id="tasks-pie">
+      <h2>Status das tarefas atuais</h2>
+      <div id="pie-chart" aria-hidden="true"></div>
+      <div id="pie-legend"></div>
+    </section>
+
+    <section id="weekly-goal">
+      <h2>Meta semanal</h2>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <input id="goal-input" type="number" min="0" placeholder="Quantidade de tarefas" />
+        <button id="save-goal">Salvar</button>
+      </div>
+      <p id="goal-saved" style="color:green;display:none;margin-top:0.5rem;">Meta salva.</p>
+    </section>
+
+    <div style="margin-top:1.2rem;">
+      <a href="index.html">Voltar</a>
+    </div>
+  </div>
+
+  <script src="taskApi.js"></script>
+  <script src="dados.js"></script>
+</body>
+</html>

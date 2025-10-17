@@ -578,6 +578,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         descCompleteBtn.addEventListener('click', async function() {
             if (!viewingTaskId) return;
             try {
+                // Find task and record it as completed with timestamp
+                const task = tasks.find(t => t.id === viewingTaskId);
+                if (task) {
+                    const completedRecord = { ...task, completedAt: new Date().toISOString() };
+                    await api.addCompletedTask(completedRecord);
+                }
                 await api.deleteTask(viewingTaskId);
                 const idx = tasks.findIndex(t => t.id === viewingTaskId);
                 if (idx > -1) tasks.splice(idx, 1);
@@ -595,6 +601,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     toggleColorOptions.addEventListener('click', function() {
         backgroundOptionsModal.style.display = 'flex';
     });
+
+    // Dados button: open analytics page
+    const dadosBtn = document.getElementById('dados-btn');
+    if (dadosBtn) {
+        dadosBtn.addEventListener('click', function() {
+            window.location.href = 'dados.html';
+        });
+    }
 
     // Edit mode removed — use item click or modal Edit button to edit tasks
     
