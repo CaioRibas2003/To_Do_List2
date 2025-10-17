@@ -451,6 +451,20 @@ button:hover {
     background: #a71d2a;
 }
 
+/* Description modal complete button */
+#desc-complete-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+}
+
+#desc-complete-btn:hover {
+    background: #218838;
+}
+
 #toggle-color-options, #toggle-calendar-view {
     background: white;
     color: #333;

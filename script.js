@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const modalDesc = document.getElementById('modal-desc');
     const descEditBtn = document.getElementById('desc-edit-btn');
     const descDeleteBtn = document.getElementById('desc-delete-btn');
+    const descCompleteBtn = document.getElementById('desc-complete-btn');
     // edit mode button removed from UI
     const taskSelectionModal = document.getElementById('task-selection-modal');
     const closeTaskSelectionModal = document.getElementById('close-task-selection-modal');
@@ -571,6 +572,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (calendarVisible) renderCalendar(currentYear, currentMonth);
             } catch (e) {
                 alert('Erro ao excluir tarefa. Tente novamente.');
+            }
+        });
+    }
+
+    if (descCompleteBtn) {
+        descCompleteBtn.addEventListener('click', async function() {
+            if (!viewingTaskId) return;
+            const confirmed = confirm('Marcar esta tarefa como concluída? Isso removerá a tarefa.');
+            if (!confirmed) return;
+            try {
+                await api.deleteTask(viewingTaskId);
+                const idx = tasks.findIndex(t => t.id === viewingTaskId);
+                if (idx > -1) tasks.splice(idx, 1);
+                viewingTaskId = null;
+                descModal.style.display = 'none';
+                renderTasks();
+                if (calendarVisible) renderCalendar(currentYear, currentMonth);
+            } catch (e) {
+                alert('Erro ao marcar tarefa como concluída. Tente novamente.');
             }
         });
     }
