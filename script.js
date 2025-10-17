@@ -33,7 +33,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const closeModal = document.getElementById('close-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalDesc = document.getElementById('modal-desc');
-    const toggleEditMode = document.getElementById('toggle-edit-mode');
+    const descEditBtn = document.getElementById('desc-edit-btn');
+    const descDeleteBtn = document.getElementById('desc-delete-btn');
+    // edit mode button removed from UI
     const taskSelectionModal = document.getElementById('task-selection-modal');
     const closeTaskSelectionModal = document.getElementById('close-task-selection-modal');
     const taskSelectionList = document.getElementById('task-selection-list');
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     let tasks = [];
     let editingTaskId = null; // Identifica a tarefa em edição (usa id em vez de índice)
+    let viewingTaskId = null; // id da tarefa atualmente exibida no modal de descrição
     
     // Carrega as tarefas do armazenamento (TaskAPI lê do localStorage)
     await loadTasks();
@@ -471,35 +474,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         else if (task.dueDate) taskStyle = 'color:green;font-weight:bold;';
 
         const titleHtml = `<strong>${taskTitle}</strong><br>`;
-        const viewBtn = document.createElement('button');
-        viewBtn.textContent = 'Ver descrição';
-        viewBtn.className = 'view-desc-btn';
-        viewBtn.addEventListener('click', () => {
+        li.innerHTML = `<span style="${taskStyle}">${titleHtml}${dueDateStr}</span>`;
+
+        // Make the entire list item clickable to open the shared description modal
+        li.style.cursor = 'pointer';
+        li.addEventListener('click', (e) => {
+            e.stopPropagation();
+            viewingTaskId = task.id;
             modalTitle.textContent = task.title;
             modalDesc.textContent = task.desc;
             descModal.style.display = 'flex';
         });
 
-        li.innerHTML = `<span style="${taskStyle}">${titleHtml}${dueDateStr}</span>`;
-        li.insertBefore(viewBtn, li.lastChild);
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Excluir';
-        delBtn.className = 'delete-btn';
-        delBtn.addEventListener('click', async () => {
-            try {
-                await api.deleteTask(task.id);
-                const idx = tasks.findIndex(t => t.id === task.id);
-                if (idx > -1) tasks.splice(idx, 1);
-                renderTasks();
-                if (calendarVisible) {
-                    renderCalendar(currentYear, currentMonth);
-                }
-            } catch (e) {
-                alert('Erro ao excluir tarefa. Tente novamente.');
-            }
-        });
-        li.appendChild(delBtn);
         return li;
     }
 
@@ -552,20 +538,49 @@ document.addEventListener('DOMContentLoaded', async function() {
         editModal.style.display = 'none';
         editingTaskId = null;
     };
+
+    // Wire description modal Edit/Delete buttons
+    if (descEditBtn) {
+        descEditBtn.addEventListener('click', function() {
+            if (!viewingTaskId) return;
+            const task = tasks.find(t => t.id === viewingTaskId);
+            if (!task) return;
+            // Prefill edit form and open edit modal
+            editingTaskId = task.id;
+            editTitle.value = task.title;
+            editDesc.value = task.desc;
+            editDueDate.value = task.dueDate;
+            editUrgency.value = task.urgency;
+            descModal.style.display = 'none';
+            editModal.style.display = 'flex';
+        });
+    }
+
+    if (descDeleteBtn) {
+        descDeleteBtn.addEventListener('click', async function() {
+            if (!viewingTaskId) return;
+            const confirmed = confirm('Tem certeza que deseja excluir esta tarefa?');
+            if (!confirmed) return;
+            try {
+                await api.deleteTask(viewingTaskId);
+                const idx = tasks.findIndex(t => t.id === viewingTaskId);
+                if (idx > -1) tasks.splice(idx, 1);
+                viewingTaskId = null;
+                descModal.style.display = 'none';
+                renderTasks();
+                if (calendarVisible) renderCalendar(currentYear, currentMonth);
+            } catch (e) {
+                alert('Erro ao excluir tarefa. Tente novamente.');
+            }
+        });
+    }
     
     // Botão que abre as opções de cor/fundo
     toggleColorOptions.addEventListener('click', function() {
         backgroundOptionsModal.style.display = 'flex';
     });
 
-    // Botão para entrar no modo de edição (selecionar tarefa para editar)
-    toggleEditMode.addEventListener('click', function() {
-        if (tasks.length === 0) {
-            alert('Não há tarefas para editar!');
-            return;
-        }
-        showTaskSelectionModal();
-    });
+    // Edit mode removed — use item click or modal Edit button to edit tasks
     
     // Toggle calendar view
     const toggleCalendarViewBtn = document.getElementById('toggle-calendar-view');
@@ -674,16 +689,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
             tasksForDay.forEach(task => {
                 const pill = document.createElement('div');
-                pill.className = `task-pill ${task.urgency}`;
-                pill.title = task.title;
+                // Color by due date status (late / soon / normal) instead of urgency
+                const status = dueStatus(task); // 0: late, 1: soon, 2: normal
+                const statusClass = status === 0 ? 'late' : status === 1 ? 'soon' : 'normal';
+                pill.className = `task-pill ${statusClass}`;
+                // Provide a more informative tooltip: title — status (urgency)
+                const statusText = status === 0 ? 'Atrasada' : status === 1 ? 'Prazo próximo (≤2 dias)' : 'Prazo normal';
+                const urgencyText = task.urgency === 'high' ? 'Alta' : task.urgency === 'medium' ? 'Média' : 'Baixa';
+                pill.title = `${task.title} — ${statusText} (${urgencyText} urg.)`;
                 pill.textContent = task.title;
                 // Click opens description modal (reuse existing modal)
                 pill.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    viewingTaskId = task.id;
                     modalTitle.textContent = task.title;
                     modalDesc.textContent = task.desc;
                     descModal.style.display = 'flex';
-                    // Also allow quick edit on double-click
                 });
                 // Right-click to open edit modal
                 pill.addEventListener('contextmenu', (e) => {

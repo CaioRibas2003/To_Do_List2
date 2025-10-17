@@ -316,6 +316,10 @@ button:hover {
 .task-pill.high { background: #dc3545; }
 .task-pill.medium { background: #ffc107; color: #212529; }
 .task-pill.low { background: #28a745; }
+/* Date-based status colors for calendar pills */
+.task-pill.late { background: #dc3545; }
+.task-pill.soon { background: orange; }
+.task-pill.normal { background: #28a745; }
 .calendar-controls button {
     margin-left: 6px;
 }
@@ -447,7 +451,7 @@ button:hover {
     background: #a71d2a;
 }
 
-#toggle-edit-mode, #toggle-color-options, #toggle-calendar-view {
+#toggle-color-options, #toggle-calendar-view {
     background: white;
     color: #333;
     border: 1px solid #ddd;
@@ -460,21 +464,11 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-#toggle-edit-mode:hover, #toggle-color-options:hover, #toggle-calendar-view:hover {
+#toggle-color-options:hover, #toggle-calendar-view:hover {
     background: #f8f9fa;
     border-color: #adb5bd;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-/* Keep edit-mode active styling, but avoid making the layout toggle red */
-#toggle-edit-mode.active {
-    background: #dc3545;
-    color: white;
-}
-
-#toggle-edit-mode.active:hover {
-    background: #c82333;
 }
 
 /* The layout toggle should not flash red when active; use subtle active state */
